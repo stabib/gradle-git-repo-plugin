@@ -1,0 +1,28 @@
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+
+apply from: "$rootDir/version.gradle"
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+}
+
+publishing {
+    publications {
+        erlangPlugin(MavenPublication) {
+            groupId "com.layer"
+            artifactId 'git-repo-plugin'
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username rootProject.property('username')
+                password rootProject.property('password')
+            }
+            url "http://nexus.dev.layer.com:8081/nexus/content/repositories/releases"
+        }
+    }
+}

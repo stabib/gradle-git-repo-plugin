@@ -1,0 +1,8 @@
+bin
+build
+.gradle
+.idea
+out
+*.iml
+src/main/java/layer/transport/thrift
+classes

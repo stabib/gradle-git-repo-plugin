@@ -11,10 +11,8 @@ import org.gradle.api.tasks.Exec
  * Created by drapp on 7/16/14.
  */
 class GitRepoPlugin  implements Plugin<Project> {
-    private static final String PUBLISH = "publish";
 
     void apply(Project project) {
-        project.extensions.create("githubPublish", GithubPublish)
 
         // allow declaring special repositories
         if (!project.repositories.metaClass.respondsTo(project.repositories, 'github', String, String, String, String, Object)) {
@@ -31,51 +29,47 @@ class GitRepoPlugin  implements Plugin<Project> {
             }
         }
 
-        if(hasPublishTask(project)) {
-            // add a publishToGithub task
-            Task cloneRepo = project.tasks.create("cloneRepo")
-            cloneRepo.doFirst{
-                ensureLocalRepo(
-                        project,
-                        repositoryDir(project, project.githubPublish.org),
-                        project.githubPublish.repo,
-                        gitCloneUrl(project.githubPublish.org, project.githubPublish.repo),
-                        project.githubPublish.branch)
-            }
-            project.tasks.getByName(PUBLISH).dependsOn(cloneRepo)
+        project.afterEvaluate {
+            if(hasPublishTask(project)) {
+                // add a publishToGithub task
+                Task cloneRepo = project.tasks.create("cloneRepo")
+                cloneRepo.doFirst{
+                    ensureLocalRepo(
+                            project,
+                            repositoryDir(project, project.property("org")),
+                            project.property("repo"),
+                            gitCloneUrl(project.property("org"), project.property("repo")),
+                            project.hasProperty("branch") ? project.property("branch") : "master")
+                }
+                publishTask(project).dependsOn(cloneRepo)
 
-            Task publishToGithub = project.tasks.create("publishToGithub")
-            publishToGithub.doFirst {
-                def gitDir = repositoryDir(project, project.githubPublish.org + "/" + project.githubPublish.repo)
-                project.exec {
-                    executable "git"
-                    workingDir gitDir
-                    args "add", "*"
+                Task publishToGithub = project.tasks.create("publishToGithub")
+                publishToGithub.doFirst {
+                    def gitDir = repositoryDir(project, project.property("org") + "/" + project.property("repo"))
+                    project.exec {
+                        executable "git"
+                        workingDir gitDir
+                        args "add", "*"
+                    }
+                    project.exec {
+                        executable "git"
+                        workingDir gitDir
+                        args "commit", "-a", "-m", "published artifacts for  ${project.getGroup()} ${project.version}"
+                    }
+                    project.exec {
+                        executable "git"
+                        workingDir gitDir
+                        args "push", "-u", "origin", "master"
+                    }
                 }
-                project.exec {
-                    executable "git"
-                    workingDir gitDir
-                    args "commit", "-a", "-m", "published artifacts for  ${project.getGroup()} ${project.version}"
-                }
-                project.exec {
-                    executable "git"
-                    workingDir gitDir
-                    args "push", "-u", "origin", "master"
-                }
+                publishToGithub.dependsOn(publishTask(project))
             }
-            publishToGithub.dependsOn(project.tasks.getByName(PUBLISH))
         }
-    }
-
-    static class GithubPublish {
-        def String org = null
-        def String repo = null
-        def String branch = "master"
     }
 
     private static boolean hasPublishTask(project) {
         try {
-            project.tasks.getByName(PUBLISH)
+            publishTask(project)
             return true;
         } catch (UnknownTaskException e) {
             return false;
@@ -83,11 +77,19 @@ class GitRepoPlugin  implements Plugin<Project> {
 
     }
 
-    private static File repositoryDir(Project project, String name) {
-        if(project.hasProperty("gitRepositories")) {
-            project.file(project.property("gitRepositories"))
+    private static Task publishTask(Project project) {
+        if(project.hasProperty("publishTask")) {
+            return project.tasks.getByName((String) project.property("publishTask"))
         } else {
-            project.file("${System.env.HOME}/.gitRepos/${name}")
+            return project.tasks.getByName("publish")
+        }
+    }
+
+    private static File repositoryDir(Project project, String name) {
+        if(project.hasProperty("gitRepoHome")) {
+            return project.file("${project.property("gitRepoHome")}/$name")
+        } else {
+            return project.file("${System.env.HOME}/.gitRepos/$name")
         }
     }
 

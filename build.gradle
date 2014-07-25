@@ -10,7 +10,7 @@ dependencies {
 
 publishing {
     publications {
-        erlangPlugin(MavenPublication) {
+        gitRepoPlugin(MavenPublication) {
             groupId "com.layer"
             artifactId 'git-repo-plugin'
             from components.java
@@ -18,11 +18,8 @@ publishing {
     }
     repositories {
         maven {
-            credentials {
-                username rootProject.property('username')
-                password rootProject.property('password')
-            }
-            url "http://nexus.dev.layer.com:8081/nexus/content/repositories/releases"
+            // TODO use this plugin to publish itself
+            url "file:///Users/drapp/.gitRepos/layerhq/releases-gradle/releases"
         }
     }
 }

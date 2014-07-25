@@ -16,7 +16,8 @@ back and relax.
 
 ## Building
 
-Run `gradle publishToMavenLocal` or `gradle publish` to build and push a new version. The project can also be opened in intellij
+Run `gradle build` to build, and `gradle -Porg=layerhq -Prepo=gradle-releases publishToGithub`
+to publish. The plugin uses itself to publish itself :).
 
 ## Usage
 
@@ -24,10 +25,10 @@ This plugin needs to be added via the standard plugin mechanism with this builds
 
     buildscript {
         repositories {
-            maven { url "wherever/we/put/it" }
+            maven { url "https://github.com/layerhq/releases-gradle/raw/master/releases" }
         }
         dependencies {
-            classpath group: 'com.layer', name: 'git-repo-plugin', version: '0.1.5'
+            classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.0.0'
         }
     }
 
@@ -49,13 +50,19 @@ Add this alongside other repositories and you're good to go
 ### Publishing to github repos
 
 Publishing is a bit less seamless, mostly because there isn't one single way to
-handle publishing in maven (also the maven-publish plugin is infuratingly
+handle publishing in gradle (also the maven-publish plugin is infuratingly
 tamper-proof). You're expected to have a task called `publish` by default, that
-by publishes to the locally cloned github repo. That task gets wrapped into a
+publishes to the locally cloned github repo. That task gets wrapped into a
 `publishToGithub` task that handles committing and pushing the change. Then you
 can run
 
-    gradle -Porg=layerhq -Prepo=android-releases publishToGithub
+    gradle -Porg=layerhq -Prepo=gradle-releases publishToGithub
+
+You can also run 
+
+    gradle -Porg=layerhq -Prepo=gradle-releases publish
+
+to stage a release in the local github repo and commit it manually.
 
 The `maven-publish` plugin defines a publish task for you, so you just need to
 supply the right url in the publishing block
@@ -85,11 +92,22 @@ A version of this with the `maven` plugin might look like
         repositories {
             mavenDeployer {
                 repository(url: url())
-                pom = sdkPom("jar", artifactIdName)
             }
         }
     }
 
+## Flags
+
+The following flags are supported
+
+* `gitRepoHome` (optional for dependencies and publishing, default is ~/.gitRepos) The location for cloned gitrepos
+* `org` (required for publishing) The github org to publish to
+* `repo` (required for publishing) The github repo to publish to
+* `publishTask` (option for publishing, default is publish) The publish task to use
+
 ## Futures
 
-Accept closures for nicer syntax
+It would be nice to make publishing seamless, without the flags, and completely
+hide the locally cloned repo. That might require reimplementing maven
+publishing though. The `maven-publish` plugin isn't amenable to having its
+settings messed with after it's been applied unfortunately.

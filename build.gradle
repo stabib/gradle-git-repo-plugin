@@ -1,5 +1,15 @@
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
+apply plugin: 'git-repo'
+
+buildscript {
+     repositories {
+         maven { url "https://github.com/layerhq/releases-gradle/raw/master/releases" }
+     }
+     dependencies {
+         classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.0.0'
+     }
+}
 
 apply from: "$rootDir/version.gradle"
 
@@ -18,8 +28,7 @@ publishing {
     }
     repositories {
         maven {
-            // TODO use this plugin to publish itself
-            url "file:///Users/drapp/.gitRepos/layerhq/releases-gradle/releases"
+            url "file://${System.env.HOME}/.gitRepos/${property("org")}/${property("repo")}/releases"
         }
     }
 }

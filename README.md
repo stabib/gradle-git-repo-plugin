@@ -1,4 +1,4 @@
-# git-repo-plugin
+# The Gradle Git Repo Plugin
 
 This plugin allows you to add a git repository as a maven repo, even if the git
 repository is private, similar to how CocoaPods works.
@@ -111,3 +111,15 @@ It would be nice to make publishing seamless, without the flags, and completely
 hide the locally cloned repo. That might require reimplementing maven
 publishing though. The `maven-publish` plugin isn't amenable to having its
 settings messed with after it's been applied unfortunately.
+
+## Credits
+
+Douglas Rapp
+
+- http://github.com/drapp
+- http://twitter.com/platykurtic
+- douglas.rapp@gmail.com
+
+## License
+
+The gradle git repo plugin is available under the Apache 2 License. See the LICENSE file for more info.

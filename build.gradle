@@ -13,9 +13,14 @@ buildscript {
 
 apply from: "$rootDir/version.gradle"
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     compile gradleApi()
     compile localGroovy()
+    compile 'org.ajoberstar:gradle-git:1.0.0'
 }
 
 publishing {

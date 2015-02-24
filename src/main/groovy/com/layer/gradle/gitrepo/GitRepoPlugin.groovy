@@ -4,16 +4,15 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
-import org.gradle.api.tasks.Exec
+
+import org.ajoberstar.grgit.*
 
 /**
  * Use a (possibly private) github repo as a maven dependency.
  * Created by drapp on 7/16/14.
  */
 class GitRepoPlugin  implements Plugin<Project> {
-
     void apply(Project project) {
-
         // allow declaring special repositories
         if (!project.repositories.metaClass.respondsTo(project.repositories, 'github', String, String, String, String, Object)) {
             project.repositories.metaClass.github = { String org, String repo, String branch = "master", String type = "releases", def closure = null ->
@@ -46,21 +45,11 @@ class GitRepoPlugin  implements Plugin<Project> {
                 Task publishToGithub = project.tasks.create("publishToGithub")
                 publishToGithub.doFirst {
                     def gitDir = repositoryDir(project, project.property("org") + "/" + project.property("repo"))
-                    project.exec {
-                        executable "git"
-                        workingDir gitDir
-                        args "add", "*"
-                    }
-                    project.exec {
-                        executable "git"
-                        workingDir gitDir
-                        args "commit", "-a", "-m", "published artifacts for  ${project.getGroup()} ${project.version}"
-                    }
-                    project.exec {
-                        executable "git"
-                        workingDir gitDir
-                        args "push", "-u", "origin", "master"
-                    }
+                    def gitRepo= Grgit.open(dir: repoDir)
+
+                    gitRepo.add(patterns: ['*'])
+                    gitRepo.commit(message: "published artifacts for  ${project.getGroup()} ${project.version}")
+                    gitRepo.push()
                 }
                 publishToGithub.dependsOn(publishTask(project))
             }
@@ -99,24 +88,16 @@ class GitRepoPlugin  implements Plugin<Project> {
 
     private static File ensureLocalRepo(Project project, File directory, String name, String gitUrl, String branch) {
         def repoDir = new File(directory, name)
-        if(!repoDir.directory) {
-            project.mkdir(directory)
-            project.exec {
-                workingDir directory
-                executable "git"
-                args "clone", gitUrl, name
-            }
+        def gitRepo;
+
+        if(repoDir.directory) {
+            gitRepo= Grgit.open(dir: repoDir)
+        } else {
+            gitRepo= Grgit.clone(dir: repoDir, uri: gitUrl)
         }
-        project.exec {
-            workingDir repoDir
-            executable "git"
-            args "checkout", branch
-        }
-        project.exec {
-            workingDir repoDir
-            executable "git"
-            args "pull"
-        }
+        gitRepo.checkout(branch: branch)
+        gitRepo.pull()
+
         return repoDir;
     }
 

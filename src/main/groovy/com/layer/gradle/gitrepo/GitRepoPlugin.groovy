@@ -89,7 +89,7 @@ class GitRepoPlugin  implements Plugin<Project> {
         if(project.hasProperty("gitRepoHome")) {
             return project.file("${project.property("gitRepoHome")}/$name")
         } else {
-            return project.file("${System.env.HOME}/.gitRepos/$name")
+            return project.file("${System.properties['user.home']}/.gitRepos/$name")
         }
     }
 

@@ -46,7 +46,7 @@ class GitRepoPlugin  implements Plugin<Project> {
                 }
                 publishTask(project).dependsOn(cloneRepo)
 
-                Task publishToGithub = project.tasks.create(project.repoconfig.taskname)
+                Task publishToGithub = project.tasks.create(project.taskconfig.newpublishtaskname)
                 publishToGithub.doFirst {
                     def gitDir = repositoryDir(project, project.repoconfig.org + "/" + project.repoconfig.repo)
                     project.exec {
@@ -81,7 +81,7 @@ class GitRepoPlugin  implements Plugin<Project> {
     }
 
     private static Task publishTask(Project project) {
-		project.tasks.getByName(project.taskconfig.publishTask)
+		project.tasks.getByName(project.taskconfig.publishtask)
     }
 
     private static File repositoryDir(Project project, String name) {
@@ -100,9 +100,6 @@ class GitRepoPlugin  implements Plugin<Project> {
 
     private static File ensureLocalRepo(Project project, File directory, String name, String gitUrl, String branch) {
         def repoDir = new File(directory, name)
-
-		println "Ensure local repo : dir ${directory.getAbsolutePath()}, name : ${name}, url ${gitUrl}, branch ${branch}"
-
         if(!repoDir.directory) {
             project.mkdir(directory)
             project.exec {
@@ -144,5 +141,5 @@ class GitRepoPluginExtension{
 
 class PublishTaskExtension{
 	def String newpublishtaskname = "publishToGithub"
-	def String publishTask = "publish" //default publish tasks added by maven-publish plugin
+	def String publishtask = "publish" //default publish tasks added by maven-publish plugin
 }

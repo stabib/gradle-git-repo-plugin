@@ -45,7 +45,7 @@ class GitRepoPlugin  implements Plugin<Project> {
                 Task publishToGithub = project.tasks.create("publishToGithub")
                 publishToGithub.doFirst {
                     def gitDir = repositoryDir(project, project.property("org") + "/" + project.property("repo"))
-                    def gitRepo= Grgit.open(dir: repoDir)
+                    def gitRepo= Grgit.open(dir: gitDir)
 
                     gitRepo.add(patterns: ['*'])
                     gitRepo.commit(message: "published artifacts for  ${project.getGroup()} ${project.version}")

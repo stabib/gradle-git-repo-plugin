@@ -117,7 +117,7 @@ Plugin can be configured by extensions instead of giving arguments via command l
 		// optional
 
 		newpublishtaskname = "publishToGihub"
-		publishTask = "publish" //(option for publishing, default is publish) The publish task to use
+		publishtask = "publish" //(option for publishing, default is publish) The publish task to use
 	}
 
 ## Flags

@@ -28,7 +28,7 @@ This plugin needs to be added via the standard plugin mechanism with this builds
             maven { url "https://github.com/layerhq/releases-gradle/raw/master/releases" }
         }
         dependencies {
-            classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.0.0'
+            classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.1.0'
         }
     }
 
@@ -95,6 +95,30 @@ A version of this with the `maven` plugin might look like
             }
         }
     }
+
+## Extensions
+
+Plugin can be configured by extensions instead of giving arguments via command line
+
+    repoconfig {
+		// mendatory
+
+        org = "myorg"
+		repo = "myrepo"
+
+		// optional
+
+		provider = "github.com" // or "gitlab.com", or any other github like
+		branch = "master"
+		gitrepohome = "${System.properties['user.home']}/.gitRepos" // (default is ~/.gitRepos) The location for cloned gitrepos
+	}
+
+    taskconfig {
+		// optional
+
+		newpublishtaskname = "publishToGihub"
+		publishtask = "publish" //(option for publishing, default is publish) The publish task to use
+	}
 
 ## Flags
 

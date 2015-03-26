@@ -7,7 +7,7 @@ buildscript {
          maven { url "https://github.com/layerhq/releases-gradle/raw/master/releases" }
      }
      dependencies {
-         classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.0.0'
+         classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.1.0'
      }
 }
 
@@ -23,6 +23,11 @@ dependencies {
     compile 'org.ajoberstar:gradle-git:1.0.0'
 }
 
+repoconfig{
+	org = hasProperty("org")?project.org:"layerhq"
+	repo = hasProperty("repo")?project.repo:"gradle-releases"
+}
+
 publishing {
     publications {
         gitRepoPlugin(MavenPublication) {
@@ -33,7 +38,7 @@ publishing {
     }
     repositories {
         maven {
-            url "file://${System.env.HOME}/.gitRepos/${property("org")}/${property("repo")}/releases"
+            url "file://${System.env.HOME}/.gitRepos/${repoconfig.org}/${repoconfig.repo}/releases"
         }
     }
 }

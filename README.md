@@ -9,26 +9,23 @@ http interface, or at least I haven't figured out how to get the authentication
 right. This plugin simply clones the repo behind the scenes and uses it as a
 local repo, so if you have permissions to clone the repo you can access it.
 
-This plugin lets you tie access to your repository to github accounts,
+This plugin lets you tie access to your repository to github accounts, or any git repository
 seamlessly. This is most useful if you've already set up to manage distribution
 this way. Deliver CocoaPods and Maven artifacts with the same system, then sit
 back and relax.
 
 ## Building
 
-Run `gradle build` to build, and `gradle -Porg=layerhq -Prepo=gradle-releases publishToGithub`
-to publish. The plugin uses itself to publish itself :).
+Run `gradle build` to build, and `gradle publish` to publish. Sadly, this plugin no longer
+uses itself to publish itself :(.
 
 ## Usage
 
 This plugin needs to be added via the standard plugin mechanism with this buildscript in your top level project
 
     buildscript {
-        repositories {
-            maven { url "https://github.com/layerhq/releases-gradle/raw/master/releases" }
-        }
         dependencies {
-            classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.1.0'
+            classpath group: 'com.layer', name: 'git-repo-plugin', version: '2.0.0'
         }
     }
 
@@ -37,32 +34,31 @@ and then apply the plugin
     apply plugin: 'git-repo'
 
 
-### Depending on github repos
+### Depending on git repos
 
-This plug adds a `github` method to your repositories block
+This plug adds `github` and `git` methods to your repositories block
 
     repositories {
         github("layerhq", "maven-private", "master", "releases")
+        git("https://some/clone/url.git", "arbitrary.unique.name", "master", "releases")
     }
 
-Add this alongside other repositories and you're good to go
+Add either alongside other repositories and you're good to go. The `github` variant is
+just a special case of `git`, they both do the same thing.
 
 ### Publishing to github repos
 
 Publishing is a bit less seamless, mostly because there isn't one single way to
 handle publishing in gradle (also the maven-publish plugin is infuratingly
 tamper-proof). You're expected to have a task called `publish` by default, that
-publishes to the locally cloned github repo. That task gets wrapped into a
-`publishToGithub` task that handles committing and pushing the change. Then you
-can run
+publishes to the locally cloned repo. That task gets wrapped into a
+`publishToGithub` task that handles committing and pushing the change. First, add this
+configuration block, which will use github by default:
 
-    gradle -Porg=layerhq -Prepo=gradle-releases publishToGithub
-
-You can also run 
-
-    gradle -Porg=layerhq -Prepo=gradle-releases publish
-
-to stage a release in the local github repo and commit it manually.
+    gitRepoConfig{
+        org = "layerhq"
+        repo = "maven-private"
+    }
 
 The `maven-publish` plugin defines a publish task for you, so you just need to
 supply the right url in the publishing block
@@ -73,17 +69,28 @@ supply the right url in the publishing block
         }
         repositories {
             maven {
-                url "file://${System.env.HOME}/.gitRepos/${property("org")}/${property("repo")}/releases"
+                url "file://${gitRepoConfig.home}/${gitRepoConfig.org}/${gitRepoConfig.repo}/releases"
             }
         }
     }
 
+Then you can run
+
+    gradle publishToGithub
+
+You can also run 
+
+    gradle publish
+
+to stage a release in the local github repo and commit it manually.
+
+
 A version of this with the `maven` plugin might look like
 
     String url() {
-        String org =  hasProperty("org") ? property("org") : "layerhq"
-        String repo = hasProperty("repo") ? property("repo") : "maven-private"
-        String repoHome = hasProperty("gitRepoHome") ? property("gitRepoHome") : "${System.env.HOME}/.gitRepos"
+        String org =  gitRepoConfig.org
+        String repo = gitRepoConfig.repo
+        String repoHome = gitRepoConfig.home
         return "file://$repoHome/$org/$repo/releases"
     }
     
@@ -96,45 +103,34 @@ A version of this with the `maven` plugin might look like
         }
     }
 
-## Extensions
+## Settings
 
-Plugin can be configured by extensions instead of giving arguments via command line
+The following configuration is supported, to allow publishing to non-github repos and other settings
 
-    repoconfig {
-		// mendatory
+    gitRepoConfig {
+		// mandatory
 
         org = "myorg"
 		repo = "myrepo"
 
 		// optional
 
+	    gitUrl = "" //used to replace git@${provider}:${org}/${repo}.git
 		provider = "github.com" // or "gitlab.com", or any other github like
 		branch = "master"
-		gitrepohome = "${System.properties['user.home']}/.gitRepos" // (default is ~/.gitRepos) The location for cloned gitrepos
+		home = "${System.properties['user.home']}/.gitRepos" // (default is ~/.gitRepos) The location for cloned gitrepos
+        publishAndPushTask = "publishToGithub" // the name for the full publish action
+        publishTask = "publish" //default publish tasks added by maven-publish plugin
 	}
-
-    taskconfig {
-		// optional
-
-		newpublishtaskname = "publishToGihub"
-		publishtask = "publish" //(option for publishing, default is publish) The publish task to use
-	}
-
-## Flags
-
-The following flags are supported
-
-* `gitRepoHome` (optional for dependencies and publishing, default is ~/.gitRepos) The location for cloned gitrepos
-* `org` (required for publishing) The github org to publish to
-* `repo` (required for publishing) The github repo to publish to
-* `publishTask` (option for publishing, default is publish) The publish task to use
 
 ## Futures
 
-It would be nice to make publishing seamless, without the flags, and completely
+It would be nice to make publishing seamless and completely
 hide the locally cloned repo. That might require reimplementing maven
 publishing though. The `maven-publish` plugin isn't amenable to having its
 settings messed with after it's been applied unfortunately.
+
+After long-term use, your git repo can get very large, and cloning it becomes slow
 
 ## Credits
 

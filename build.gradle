@@ -40,7 +40,7 @@ publishing {
     }
     repositories {
         maven {
-            url "file://${gitRepoConfig.gitRepoHome}/${gitRepoConfig.org}/${gitRepoConfig.repo}/releases"
+            url "file://${gitRepoConfig.home}/${gitRepoConfig.org}/${gitRepoConfig.repo}/releases"
         }
     }
 }

@@ -74,7 +74,7 @@ class GitRepoPlugin  implements Plugin<Project> {
     }
 
     private static File repositoryDir(Project project, String name) {
-        return project.file("${project.gitRepoConfig.gitRepoHome}/$name")
+        return project.file("${project.gitRepoConfig.home}/$name")
     }
     private static String githubCloneUrl(String org, String repo) {
         return "git@github.com:$org/${repo}.git"
@@ -121,7 +121,7 @@ class GitRepoConfig {
 	def String provider = "github.com" //github.com, gitlab or others
 	def String gitUrl = "" //used to replace git@${provider}:${org}/${repo}.git
 	def String branch = "master"
-	def String gitRepoHome = "${System.properties['user.home']}/.gitRepos"
+	def String home = "${System.properties['user.home']}/.gitRepos"
     def String publishAndPushTask = "publishToGithub"
     def String publishTask = "publish" //default publish tasks added by maven-publish plugin
 }

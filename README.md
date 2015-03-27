@@ -55,7 +55,7 @@ publishes to the locally cloned repo. That task gets wrapped into a
 `publishToGithub` task that handles committing and pushing the change. First, add this
 configuration block, which will use github by default:
 
-    gitRepoConfig{
+    gitPublishConfig{
         org = "layerhq"
         repo = "maven-private"
     }
@@ -69,7 +69,7 @@ supply the right url in the publishing block
         }
         repositories {
             maven {
-                url "file://${gitRepoConfig.home}/${gitRepoConfig.org}/${gitRepoConfig.repo}/releases"
+                url "file://${gitPublishConfig.home}/${gitPublishConfig.org}/${gitPublishConfig.repo}/releases"
             }
         }
     }
@@ -88,9 +88,9 @@ to stage a release in the local github repo and commit it manually.
 A version of this with the `maven` plugin might look like
 
     String url() {
-        String org =  gitRepoConfig.org
-        String repo = gitRepoConfig.repo
-        String repoHome = gitRepoConfig.home
+        String org =  gitPublishConfig.org
+        String repo = gitPublishConfig.repo
+        String repoHome = gitPublishConfig.home
         return "file://$repoHome/$org/$repo/releases"
     }
     
@@ -105,7 +105,13 @@ A version of this with the `maven` plugin might look like
 
 ## Settings
 
-The following configuration is supported, to allow publishing to non-github repos and other settings
+The following gradle properties affect cloning dependencies
+
+- **offline** when defined, no network operations will be performed, the repos will be assumed to be in place
+- **home** the base directory for cloning git repos, ~/.gitRepos by default
+
+
+For publishing, the following configuration is supported, to allow non-github repos and other settings
 
     gitRepoConfig {
 		// mandatory
@@ -118,9 +124,10 @@ The following configuration is supported, to allow publishing to non-github repo
 	    gitUrl = "" //used to replace git@${provider}:${org}/${repo}.git
 		provider = "github.com" // or "gitlab.com", or any other github like
 		branch = "master"
-		home = "${System.properties['user.home']}/.gitRepos" // (default is ~/.gitRepos) The location for cloned gitrepos
+        home = "${System.properties['user.home']}/.gitRepos" base directory for cloning
         publishAndPushTask = "publishToGithub" // the name for the full publish action
         publishTask = "publish" //default publish tasks added by maven-publish plugin
+        offline = false // if true, no git clones will be performed, the repo will be assumed to be there
 	}
 
 ## Futures

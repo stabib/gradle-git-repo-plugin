@@ -14,7 +14,7 @@ import org.ajoberstar.grgit.*
 class GitRepoPlugin  implements Plugin<Project> {
     void apply(Project project) {
 
-		project.extensions.create("gitRepoConfig", GitRepoConfig)
+		project.extensions.create("gitPublishConfig", GitPublishConfig)
 
         // allow declaring special repositories
         if (!project.repositories.metaClass.respondsTo(project.repositories, 'github', String, String, String, String, Object)) {
@@ -38,16 +38,16 @@ class GitRepoPlugin  implements Plugin<Project> {
                 cloneRepo.doFirst{
                     ensureLocalRepo(
                             project,
-                            repositoryDir(project, project.gitRepoConfig.org),
-                            project.gitRepoConfig.repo,
+                            repositoryDir(project, project.gitPublishConfig.org),
+                            project.gitPublishConfig.repo,
                             gitCloneUrl(project),
-                            project.gitRepoConfig.branch)
+                            project.gitPublishConfig.branch)
                 }
                 publishTask(project).dependsOn(cloneRepo)
 
-                Task publishAndPush = project.tasks.create(project.gitRepoConfig.publishAndPushTask)
+                Task publishAndPush = project.tasks.create(project.gitPublishConfig.publishAndPushTask)
                 publishAndPush.doFirst {
-                    def gitDir = repositoryDir(project, project.gitRepoConfig.org + "/" + project.gitRepoConfig.repo)
+                    def gitDir = repositoryDir(project, project.gitPublishConfig.org + "/" + project.gitPublishConfig.repo)
                     def gitRepo= Grgit.open(dir: gitDir)
 
                     gitRepo.add(patterns: ['*'])
@@ -70,11 +70,15 @@ class GitRepoPlugin  implements Plugin<Project> {
     }
 
     private static Task publishTask(Project project) {
-		project.tasks.getByName(project.gitRepoConfig.publishTask)
+		project.tasks.getByName(project.gitPublishConfig.publishTask)
     }
 
     private static File repositoryDir(Project project, String name) {
-        return project.file("${project.gitRepoConfig.home}/$name")
+        if(project.hasProperty("gitRepoHome")) {
+            return project.file("${project.property("gitRepoHome")}/$name")
+        } else {
+            return project.file("${System.properties['user.home']}/.gitRepos/$name")
+        }
     }
     private static String githubCloneUrl(String org, String repo) {
         return "git@github.com:$org/${repo}.git"
@@ -82,10 +86,10 @@ class GitRepoPlugin  implements Plugin<Project> {
 
     private static String gitCloneUrl(Project project) {
 		def String url = ""
-		if(project.gitRepoConfig.gitUrl != ""){
-			url = project.gitRepoConfig.gitUrl
+		if(project.gitPublishConfig.gitUrl != ""){
+			url = project.gitPublishConfig.gitUrl
 		} else {
-			url = "git@${project.gitRepoConfig.provider}:${project.gitRepoConfig.org}/${project.gitRepoConfig.repo}.git"
+			url = "git@${project.gitPublishConfig.provider}:${project.gitPublishConfig.org}/${project.gitPublishConfig.repo}.git"
 		}
         return url
     }
@@ -93,15 +97,15 @@ class GitRepoPlugin  implements Plugin<Project> {
     private static File ensureLocalRepo(Project project, File directory, String name, String gitUrl, String branch) {
         def repoDir = new File(directory, name)
         def gitRepo;
-        println("repoDir: " + repoDir)
-
-        if(repoDir.directory) {
+        if(repoDir.directory || project.hasProperty("offline")) {
             gitRepo= Grgit.open(dir: repoDir)
         } else {
             gitRepo= Grgit.clone(dir: repoDir, uri: gitUrl)
         }
-        gitRepo.checkout(branch: branch)
-        gitRepo.pull()
+        if(!project.hasProperty("offline")) {
+            gitRepo.checkout(branch: branch)
+            gitRepo.pull()
+        }
 
         return repoDir;
     }
@@ -115,13 +119,13 @@ class GitRepoPlugin  implements Plugin<Project> {
 
 }
 
-class GitRepoConfig {
+class GitPublishConfig {
 	def String org = ""
 	def String repo = ""
 	def String provider = "github.com" //github.com, gitlab or others
 	def String gitUrl = "" //used to replace git@${provider}:${org}/${repo}.git
 	def String branch = "master"
-	def String home = "${System.properties['user.home']}/.gitRepos"
+    def String home = "${System.properties['user.home']}/.gitRepos"
     def String publishAndPushTask = "publishToGithub"
     def String publishTask = "publish" //default publish tasks added by maven-publish plugin
 }

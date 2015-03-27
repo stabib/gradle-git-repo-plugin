@@ -14,7 +14,7 @@ import org.ajoberstar.grgit.*
 class GitRepoPlugin  implements Plugin<Project> {
     void apply(Project project) {
 
-		project.extensions.create("gitPublishConfig", GitPublishConfig)
+        project.extensions.create("gitPublishConfig", GitPublishConfig)
 
         // allow declaring special repositories
         if (!project.repositories.metaClass.respondsTo(project.repositories, 'github', String, String, String, String, Object)) {
@@ -70,7 +70,7 @@ class GitRepoPlugin  implements Plugin<Project> {
     }
 
     private static Task publishTask(Project project) {
-		project.tasks.getByName(project.gitPublishConfig.publishTask)
+        project.tasks.getByName(project.gitPublishConfig.publishTask)
     }
 
     private static File repositoryDir(Project project, String name) {
@@ -85,13 +85,11 @@ class GitRepoPlugin  implements Plugin<Project> {
     }
 
     private static String gitCloneUrl(Project project) {
-		def String url = ""
-		if(project.gitPublishConfig.gitUrl != ""){
-			url = project.gitPublishConfig.gitUrl
-		} else {
-			url = "git@${project.gitPublishConfig.provider}:${project.gitPublishConfig.org}/${project.gitPublishConfig.repo}.git"
-		}
-        return url
+        if(project.gitPublishConfig.gitUrl != ""){
+            return project.gitPublishConfig.gitUrl
+        } else {
+            return "git@${project.gitPublishConfig.provider}:${project.gitPublishConfig.org}/${project.gitPublishConfig.repo}.git"
+        }
     }
 
     private static File ensureLocalRepo(Project project, File directory, String name, String gitUrl, String branch) {
@@ -120,11 +118,11 @@ class GitRepoPlugin  implements Plugin<Project> {
 }
 
 class GitPublishConfig {
-	def String org = ""
-	def String repo = ""
-	def String provider = "github.com" //github.com, gitlab or others
-	def String gitUrl = "" //used to replace git@${provider}:${org}/${repo}.git
-	def String branch = "master"
+    def String org = ""
+    def String repo = ""
+    def String provider = "github.com" //github.com, gitlab or others
+    def String gitUrl = "" //used to replace git@${provider}:${org}/${repo}.git
+    def String branch = "master"
     def String home = "${System.properties['user.home']}/.gitRepos"
     def String publishAndPushTask = "publishToGithub"
     def String publishTask = "publish" //default publish tasks added by maven-publish plugin

@@ -28,7 +28,7 @@ This plugin needs to be added via the standard plugin mechanism with this builds
             mavenCentral()
         }
         dependencies {
-            classpath group: 'com.layer', name: 'git-repo-plugin', version: '2.0.0'
+            classpath group: 'com.layer', name: 'gradle-git-repo-plugin', version: '2.0.0'
         }
     }
 

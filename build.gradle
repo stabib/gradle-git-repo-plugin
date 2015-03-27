@@ -4,10 +4,12 @@ apply plugin: 'git-repo'
 
 buildscript {
      repositories {
+         maven { url "${System.env.HOME}/.m2/repository" }
          maven { url "https://github.com/layerhq/releases-gradle/raw/master/releases" }
+         mavenCentral()
      }
      dependencies {
-         classpath group: 'com.layer', name: 'git-repo-plugin', version: '1.1.0'
+         classpath group: 'com.layer', name: 'git-repo-plugin', version: '2.0.0'
      }
 }
 
@@ -23,9 +25,9 @@ dependencies {
     compile 'org.ajoberstar:gradle-git:1.0.0'
 }
 
-repoconfig{
-	org = hasProperty("org")?project.org:"layerhq"
-	repo = hasProperty("repo")?project.repo:"gradle-releases"
+gitRepoConfig{
+	org = "layerhq"
+	repo = "gradle-releases"
 }
 
 publishing {
@@ -38,7 +40,7 @@ publishing {
     }
     repositories {
         maven {
-            url "file://${System.env.HOME}/.gitRepos/${repoconfig.org}/${repoconfig.repo}/releases"
+            url "file://${gitRepoConfig.gitRepoHome}/${gitRepoConfig.org}/${gitRepoConfig.repo}/releases"
         }
     }
 }

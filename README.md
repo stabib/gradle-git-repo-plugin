@@ -24,6 +24,9 @@ uses itself to publish itself :(.
 This plugin needs to be added via the standard plugin mechanism with this buildscript in your top level project
 
     buildscript {
+        repositories {
+            mavenCentral()
+        }
         dependencies {
             classpath group: 'com.layer', name: 'git-repo-plugin', version: '2.0.0'
         }

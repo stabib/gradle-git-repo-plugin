@@ -10,4 +10,4 @@ classes
 .settings
 .project
 .classpath
-
+gradle.properties

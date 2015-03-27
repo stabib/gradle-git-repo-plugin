@@ -1,6 +1,8 @@
 apply plugin: 'groovy'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
+group = 'com.layer'
 apply from: "$rootDir/version.gradle"
 
 repositories {
@@ -13,22 +15,66 @@ dependencies {
     compile 'org.ajoberstar:gradle-git:1.0.0'
 }
 
-//gitPublishConfig{
-	//org = "layerhq"
-	//repo = "gradle-releases"
-//}
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
 
-publishing {
-    publications {
-        gitRepoPlugin(MavenPublication) {
-            groupId "com.layer"
-            artifactId 'git-repo-plugin'
-            from components.java
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'Gradle Git Repo Plugin'
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description 'Use a git repo as a maven-style repo'
+                url 'https://github.com/layerhq/gradle-git-repo-plugin'
+
+                scm {
+                    connection 'scm:git:git@github.com:layerhq/gradle-git-repo-plugin.git'
+                    developerConnection 'scm:git:git@github.com:layerhq/gradle-git-repo-plugin.git'
+                    url 'https://github.com/layerhq/gradle-git-repo-plugin'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'drapp'
+                        name 'Douglas Rapp'
+                        email 'doug@layer.com'
+                    }
+                }
+            }
         }
     }
-    //repositories {
-        //maven {
-            //url "file://${gitPublishConfig.home}/${gitPublishConfig.org}/${gitPublishConfig.repo}/releases"
-        //}
-    //}
 }
+

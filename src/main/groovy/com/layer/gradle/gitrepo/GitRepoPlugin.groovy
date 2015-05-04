@@ -50,7 +50,7 @@ class GitRepoPlugin  implements Plugin<Project> {
                     def gitDir = repositoryDir(project, project.gitPublishConfig.org + "/" + project.gitPublishConfig.repo)
                     def gitRepo= Grgit.open(dir: gitDir)
 
-                    gitRepo.add(patterns: ['*'])
+                    gitRepo.add(patterns: ['.'])
                     gitRepo.commit(message: "published artifacts for  ${project.getGroup()} ${project.version}")
                     gitRepo.push()
                 }

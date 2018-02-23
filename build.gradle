@@ -8,6 +8,7 @@ apply from: "$rootDir/version.gradle"
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {

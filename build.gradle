@@ -8,13 +8,11 @@ apply from: "$rootDir/version.gradle"
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
     compile gradleApi()
     compile localGroovy()
-    compile 'org.ajoberstar.grgit:grgit-core:4.0.1'
 }
 
 task javadocJar(type: Jar) {
@@ -30,4 +28,3 @@ task sourcesJar(type: Jar) {
 artifacts {
     archives javadocJar, sourcesJar
 }
-
